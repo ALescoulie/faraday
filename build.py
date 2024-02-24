@@ -20,6 +20,8 @@ if __name__ == "__main__":
     code_dir = Path(sys.argv[2])
     build_dir = Path(sys.argv[3])
 
+    shutil.rmtree(build_dir)
+
     copy_site(site_dir, build_dir)
     copy_scripts(code_dir, build_dir)
 
