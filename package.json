@@ -1,0 +1,16 @@
+{
+  "name": "Faraday",
+  "version": "0.1.0",
+  "descrition": "",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "python build.py site build app",
+    "start": "python -m http.server",
+
+    "prebuild": "tsc",
+    "perstart": "npm run build"
+  },
+  "dependencies": {
+    "paper": "^0.12.17"
+  }
+}
