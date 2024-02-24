@@ -5,7 +5,7 @@
   "main": "src/index.ts",
   "scripts": {
     "build": "python build.py site build app",
-    "start": "python -m http.server",
+    "start": "python3 -m http.server",
     "prebuild": "rollup -c",
     "prestart": "npm run build"
   },
