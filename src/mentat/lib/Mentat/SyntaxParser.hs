@@ -105,9 +105,15 @@ getProgramStatments :: Program -> [Statment]
 getProgramStatments (Program s) = s
 
 -- | returns the statments that are expressions
+filterConstraints :: [Statment] -> [Expr]
+filterConstraints [] = []
+filterConstraints (Constraint expr:rest) = expr : filterConstraints rest
+filterConstraints (_:rest) = filterConstraints rest
+
+-- | returns the statments that are expressions
 filterExprs :: [Statment] -> [Expr]
 filterExprs [] = []
-filterExprs (Constraint expr:rest) = expr : filterExprs rest
+filterExprs (Expression expr:rest) = expr : filterExprs rest
 filterExprs (_:rest) = filterExprs rest
 
 getVarNames :: [Statment] -> [String]
@@ -119,6 +125,26 @@ getFxnNames :: [Statment] -> [String]
 getFxnNames [] = []
 getFxnNames (Fxn (Function name _ _):rest) = name : getFxnNames rest
 getFxnNames (_:xs) = getFxnNames xs
+
+
+containsCompOp :: Expr -> Bool
+containsCompOp (BinOpE op left right) = if isCompOp op then True else containsCompOp left || containsCompOp right
+containsCompOp _ = False
+
+
+parseConstraint :: [TokTree] -> Either Error Statment
+parseConstraint [] = Left EmptyExpr
+parseConstraint tokTree = do
+  expr <- parseExpr tokTree
+
+  case expr of
+    BinOpE op left right -> do
+      case isCompOp op of
+        True -> do
+            if containsCompOp left || containsCompOp right then
+              Left EmptyExpr else Right $ Constraint expr
+        False -> Left EmptyExpr -- TODO add better errors
+    _ -> Left EmptyExpr
 
 -- | parses a list of strings into a program
 -- | is a helper for parse program
@@ -135,8 +161,12 @@ parseProgram' (s:ss) = do
       let maybeFunction = parseFxn tokTree
       case maybeFunction of
         Left _ -> do
-          expr <- parseExpr tokTree
-          Right $ Program (Constraint expr : restStatments)
+          let maybeConstraint = parseConstraint tokTree
+          case maybeConstraint of
+            Left _ -> do
+              expr <- parseExpr tokTree
+              Right $ Program (Expression expr : restStatments)
+            Right constraint -> Right $ Program (constraint : restStatments)
         Right fxn -> Right $ Program (fxn : restStatments)
     Right decl -> Right $ Program (decl : restStatments)
 

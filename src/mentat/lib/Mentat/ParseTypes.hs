@@ -66,6 +66,12 @@ data BinOp
   | G
   deriving (Show, Eq)
 
+comparisonOps = [Eql, GEq, LEq, G, L, NEq]
+
+isCompOp :: BinOp -> Bool
+isCompOp op = op `elem` comparisonOps
+
+
 -- | Gives the presidence of BinOp types
 opPresidence :: BinOp -> Int
 opPresidence Add = 1
@@ -135,6 +141,7 @@ data Expr
 data Statment
   = Declaration String Expr
   | Constraint Expr
+  | Expression Expr
   | Fxn Function
   deriving (Show, Eq)
 

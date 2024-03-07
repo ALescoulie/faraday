@@ -81,7 +81,7 @@ library
                       
 
     -- Directories containing source files.
-    hs-source-dirs:   lib
+    hs-source-dirs:   ./../src/mentat/lib
 
     -- Base language which the package is written in.
     default-language: Haskell2010
@@ -103,7 +103,7 @@ test-suite spec
     type:             exitcode-stdio-1.0
 
     -- Directories containing source files.
-    hs-source-dirs:   test
+    hs-source-dirs:   ./../test/mentat
 
     -- The entrypoint to the test suite.
     main-is:          Spec.hs

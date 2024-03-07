@@ -34,11 +34,11 @@ spec = do
           , "b := 2"
           , "a + b"
           , "2a + 3b"
-          , "a^2 + b^2 = 13"
-          , "2a != 3 + a"
+          , "a^2 + b^2"
+          , "3 + a"
           , "(3a)^b"
           ]
-    let pg1ExpectedResults = [RL 5, RL 12, BoolL True, BoolL False, RL 81]
+    let pg1ExpectedResults = [RL 5, RL 12, RL 13, RL 6, RL 81]
     let pg1 = parseProgram pg1Input
     case pg1 of
       Right pg -> do

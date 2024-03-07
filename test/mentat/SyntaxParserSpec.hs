@@ -18,7 +18,7 @@ spec = do
             , Fxn $ Function "f" ["n"] (BinOpE Mul (VarE "n") (LitE $ RL 2))
             , Constraint
                 (BinOpE Eql (BinOpE Mul (VarE "y") (VarE "x")) (LitE $ RL 2))
-            , Constraint $ FxnE "f" [(BinOpE Mul (VarE "x") (LitE $ RL 2))]
+            , Expression $ FxnE "f" [(BinOpE Mul (VarE "x") (LitE $ RL 2))]
             ]
     let maybePg1 = parseProgram pg1
     it ("Parses program: " ++ show pg1) $ do
