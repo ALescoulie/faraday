@@ -7,3 +7,6 @@ import Mentat.Lexer
 import Mentat.ParseTypes
 import Mentat.SyntaxParser
 import Mentat.Tokenizer
+import Mentat.Validator
+
+

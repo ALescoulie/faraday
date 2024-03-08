@@ -12,10 +12,7 @@ applyBinOp :: BinOp -> Literal -> Literal -> Either Error Literal
 applyBinOp Add (RL l) (RL r) = Right $ RL (l + r)
 applyBinOp Sub (RL l) (RL r) = Right $ RL (l - r)
 applyBinOp Mul (RL l) (RL r) = Right $ RL (l * r)
-applyBinOp Div (RL x) (RL y) =
-  case y == 0 of
-    True -> Left $ LitBinOpError Div (RL x) (RL y)
-    False -> Right (RL (x / y))
+applyBinOp Div (RL x) (RL y) = Right (RL (x / y))
 applyBinOp Exp (RL x) (RL y) = Right $ RL (x ** y)
 applyBinOp Eql (RL x) (RL y) = Right (BoolL (x == y))
 applyBinOp Eql (BoolL x) (BoolL y) = Right (BoolL (x == y))
@@ -40,7 +37,7 @@ evalExpr (VarE i) vars fxns gas = do
   case val of
     Nothing -> Left $ MissingVar i
     Just n -> do
-      rest <- evalExpr n vars fxns gas
+      rest <- evalExpr n vars fxns $ gas - 1
       Right rest
 evalExpr (BinOpE op e1 e2) vars fxns gas = do
   l1 <- evalExpr e1 vars fxns gas
