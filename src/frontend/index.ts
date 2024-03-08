@@ -1,12 +1,17 @@
 import { PaperScope, Path, Point, Color } from "paper";
 
 
+function getGraph(canvas: HTMLCanvasElement): PaperScope {
+    let graph = new PaperScope;
+    graph.setup(canvas)
+    return graph;
+}
+
 
 window.onload = function() {
     
     let canvas = document.getElementById("graphCanvas") as HTMLCanvasElement; 
-    let graph = new PaperScope;
-    graph.setup(canvas)
+    let graph = getGraph(canvas);
 
     let path = new Path();
     path.strokeColor = new Color("black");

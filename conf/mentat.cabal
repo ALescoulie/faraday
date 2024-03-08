@@ -66,6 +66,9 @@ library
         Mentat.Tokenizer
         Mentat.SyntaxParser
         Mentat.Evaluator
+        Mentat.Validator
+        Mentat.FunctionBuilder
+        
 
     -- Modules included in this library but not exported.
     -- other-modules:
@@ -77,6 +80,8 @@ library
     build-depends:
         base ^>=4.17.2.1,
         containers,
+        formatting,
+        text,
         split
                       
 

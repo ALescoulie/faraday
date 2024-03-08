@@ -28,3 +28,18 @@ validateVars pg = do
     Left err -> Left err
     Right evals -> Right $ HM.map getLitType evals
 
+-- In future do type checks
+
+validateProgram :: Program -> Either Error ()
+validateProgram pg = do
+  varTypes <- validateVars pg
+  let pgStat = getProgramStatments pg
+
+  vars <- parseVariables pg
+  fxns <- parseFxns pg
+
+  exprVals <- sequence $ map (\x -> evalExpr x vars fxns 1000) $ filterExprs pgStat
+  cstrEval <- sequence $ map (\x -> evalExpr x vars fxns 1000) $ filterConstraints pgStat
+
+  pure ()
+
