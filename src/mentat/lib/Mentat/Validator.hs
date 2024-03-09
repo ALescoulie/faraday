@@ -28,13 +28,14 @@ validateVars pg = do
 -- In future do type checks
 
 
-validateProgram :: [Statment] -> Either Error ()
-validateProgram pg = do
+validateProgram :: [Statment] -> [String] -> Either Error ()
+validateProgram pg domainVars = do
   varTypes <- validateVars pg
 
   let varStats = filterVarStats pg
-  let vars = HM.fromList $ map (\(PgVar i val) -> (i, val)) varStats
-
+  let domainVarPlaceholders = map (\x -> (x, (LitE $ RL 1))) domainVars
+  let vars = HM.fromList $ (map (\(PgVar i val) -> (i, val)) varStats) ++ domainVarPlaceholders
+  
   let fxnStats = filterFxnStats pg
   let fxns = HM.fromList $ map (\(PgFxn i val) -> (i, val)) fxnStats
 
