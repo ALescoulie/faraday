@@ -3,8 +3,9 @@
 module Mentat.FunctionBuilder where
 
 import Mentat.ParseTypes
+import Mentat.ProgramTypes
+import Mentat.Program
 import Mentat.Evaluator
-import Mentat.SyntaxParser
 import Mentat.Validator
 import Formatting
 import qualified Data.Text.Lazy as LT
@@ -33,12 +34,12 @@ translateOp Sub = "-"
 translateOp Mul = "*"
 translateOp Div = "/"
 translateOp Exp = "**"
-translateOp Eql = "==="
-translateOp NEq = "!="
-translateOp GEq = ">="
-translateOp G = ">"
-translateOp LEq = "<="
-translateOp L = "<"
+translateOp (Comp Eql) = "==="
+translateOp (Comp NEq) = "!="
+translateOp (Comp GEq) = ">="
+translateOp (Comp G) = ">"
+translateOp (Comp LEq) = "<="
+translateOp (Comp L) = "<"
 
 
 translateArgString :: [String] -> String
@@ -72,24 +73,21 @@ translateFunction (Function name args expr) = do
   LT.unpack $ format ("function " % string % " { " % string % " }") (nameJS ++ transArgs) body
 
 
-data ConstraintTransed = ConstraintTransed String String BinOp deriving(Show)
+data ConstraintTransed = ConstraintTransed String String CompOp deriving(Show)
 
 
 -- | Takes in a program and outputs translated functions, constraints and expressions
 translateProgram :: Program -> [String] -> Either Error ([String], [ConstraintTransed], [String])
-translateProgram (Program []) _ = Right ([], [], [])
 translateProgram pg domainVars = do
-  validateProgram pg
 
-  let pgStats = getProgramStatments pg
-  funcs <- parseFxns pg
+  let funcs = getPgFxns pg
   let transFuncs = map translateFunction $ HM.elems funcs
 
-  let cstrs = filterConstraints pgStats
+  let cstrs = getPgCstrs pg
   
-  let transCstrs = map (\(BinOpE op left right) -> ConstraintTransed (translateExpr left domainVars) (translateExpr right domainVars) op) cstrs
+  let transCstrs = map (\(Constraint left right comp) -> ConstraintTransed (translateExpr left domainVars) (translateExpr right domainVars) comp) cstrs
   
-  let transExpr = map (\x -> translateExpr x []) $ filterExprs pgStats
+  let transExpr = map (\x -> translateExpr x []) $ getPgExprs pg
 
   Right (transFuncs, transCstrs, transExpr)
 

@@ -57,8 +57,12 @@ data BinOp
   | Sub
   | Mul
   | Div
-  | Exp
-  | Eql
+  | Exp 
+  | Comp CompOp
+  deriving (Show, Eq)
+
+data CompOp
+  = Eql
   | GEq
   | LEq
   | NEq
@@ -66,10 +70,10 @@ data BinOp
   | G
   deriving (Show, Eq)
 
-comparisonOps = [Eql, GEq, LEq, G, L, NEq]
 
 isCompOp :: BinOp -> Bool
-isCompOp op = op `elem` comparisonOps
+isCompOp (Comp _) = True
+isCompOp _ = False
 
 
 -- | Gives the presidence of BinOp types
@@ -79,7 +83,7 @@ opPresidence Sub = 1
 opPresidence Mul = 2
 opPresidence Div = 2
 opPresidence Exp = 3
-opPresidence _ = 0
+opPresidence (Comp _) = 0
 
 -- | Gives left association of BioOp types
 opLeftAssoc :: BinOp -> Bool
@@ -110,10 +114,6 @@ data Token
   | TAsgn
   deriving (Show, Eq)
 
-data Function =
-  Function String [String] Expr
-  deriving (Show, Eq)
-
 -- | Used as an intermediate step in the parsing process to validate parens and sort them into sub trees
 data TokTree
   = TLeaf Token
@@ -135,17 +135,3 @@ data Expr
   | FxnE String [Expr]
   deriving (Show, Eq)
 
--- | A statement repersents a single line of mentat code which is either a constraint or a decleration
--- | A constraint is an expression that evaluates to a boolean
--- | An assingment assocates a varriable to an ID
-data Statment
-  = Declaration String Expr
-  | Constraint Expr
-  | Expression Expr
-  | Fxn Function
-  deriving (Show, Eq)
-
--- | A program is a list of statments
-newtype Program =
-  Program [Statment]
-  deriving (Show, Eq)

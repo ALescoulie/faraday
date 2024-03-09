@@ -3,10 +3,8 @@ module Mentat.Evaluator where
 import qualified Data.Map.Strict as HM
 import Prelude hiding (lex)
 
-import Mentat.Lexer (lex)
 import Mentat.ParseTypes
-import Mentat.SyntaxParser (parseExpr)
-import Mentat.Tokenizer (parseTokTree)
+import Mentat.ProgramTypes
 
 applyBinOp :: BinOp -> Literal -> Literal -> Either Error Literal
 applyBinOp Add (RL l) (RL r) = Right $ RL (l + r)
@@ -14,14 +12,14 @@ applyBinOp Sub (RL l) (RL r) = Right $ RL (l - r)
 applyBinOp Mul (RL l) (RL r) = Right $ RL (l * r)
 applyBinOp Div (RL x) (RL y) = Right (RL (x / y))
 applyBinOp Exp (RL x) (RL y) = Right $ RL (x ** y)
-applyBinOp Eql (RL x) (RL y) = Right (BoolL (x == y))
-applyBinOp Eql (BoolL x) (BoolL y) = Right (BoolL (x == y))
-applyBinOp NEq (RL x) (RL y) = Right (BoolL (x /= y))
-applyBinOp NEq (BoolL x) (BoolL y) = Right (BoolL (x /= y))
-applyBinOp GEq (RL x) (RL y) = Right (BoolL (x >= y))
-applyBinOp G (RL x) (RL y) = Right (BoolL (x > y))
-applyBinOp LEq (RL x) (RL y) = Right (BoolL (x <= y))
-applyBinOp L (RL x) (RL y) = Right (BoolL (x < y))
+applyBinOp (Comp Eql) (RL x) (RL y) = Right (BoolL (x == y))
+applyBinOp (Comp Eql) (BoolL x) (BoolL y) = Right (BoolL (x == y))
+applyBinOp (Comp NEq) (RL x) (RL y) = Right (BoolL (x /= y))
+applyBinOp (Comp NEq) (BoolL x) (BoolL y) = Right (BoolL (x /= y))
+applyBinOp (Comp GEq) (RL x) (RL y) = Right (BoolL (x >= y))
+applyBinOp (Comp G) (RL x) (RL y) = Right (BoolL (x > y))
+applyBinOp (Comp LEq) (RL x) (RL y) = Right (BoolL (x <= y))
+applyBinOp (Comp L) (RL x) (RL y) = Right (BoolL (x < y))
 applyBinOp op x y = Left $ LitBinOpError op x y
 
 evalExpr ::

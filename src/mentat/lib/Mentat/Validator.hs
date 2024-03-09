@@ -1,17 +1,10 @@
-module Mentat.Validator where
+module Mentat.Validator (validateProgram) where
 
 import Mentat.ParseTypes
-import Mentat.SyntaxParser
+import Mentat.ProgramTypes
 import Mentat.Evaluator
 import qualified Data.Map.Strict as HM
 import Data.Traversable (sequence)
-
-
-data EvalType
-  = RealT
-  | BoolT
-  | Any
-  deriving (Show, Eq)
 
 
 getLitType :: Literal -> EvalType
@@ -19,10 +12,14 @@ getLitType (RL _) = RealT
 getLitType (BoolL _) = BoolT
 
 
-validateVars :: Program -> Either Error (HM.Map String EvalType)
+validateVars :: [Statment] -> Either Error (HM.Map String EvalType)
 validateVars pg = do
-  vars <- parseVariables pg
-  fxns <- parseFxns pg
+  let varStats = filterVarStats pg
+  let vars = HM.fromList $ map (\(PgVar i val) -> (i, val)) varStats
+
+  let fxnStats = filterFxnStats pg
+  let fxns = HM.fromList $ map (\(PgFxn i val) -> (i, val)) varStats
+  
   let varEvals = sequence $ HM.map (\x -> evalExpr x vars fxns 1000) vars
   case varEvals of
     Left err -> Left err
@@ -30,16 +27,18 @@ validateVars pg = do
 
 -- In future do type checks
 
-validateProgram :: Program -> Either Error ()
+
+validateProgram :: [Statment] -> Either Error ()
 validateProgram pg = do
   varTypes <- validateVars pg
-  let pgStat = getProgramStatments pg
 
-  vars <- parseVariables pg
-  fxns <- parseFxns pg
+  let varStats = filterVarStats pg
+  let vars = HM.fromList $ map (\(PgVar i val) -> (i, val)) varStats
 
-  exprVals <- sequence $ map (\x -> evalExpr x vars fxns 1000) $ filterExprs pgStat
-  cstrEval <- sequence $ map (\x -> evalExpr x vars fxns 1000) $ filterConstraints pgStat
+  let fxnStats = filterFxnStats pg
+  let fxns = HM.fromList $ map (\(PgFxn i val) -> (i, val)) varStats
 
+  exprVals <- sequence $ map (\(PgExpr x) -> evalExpr x vars fxns 1000) $ filterExprStats pg
+  -- TODO: build system for testsing cstrs
   pure ()
 

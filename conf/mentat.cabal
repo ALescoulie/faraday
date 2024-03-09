@@ -64,7 +64,7 @@ library
         Mentat.ParseTypes
         Mentat.Lexer
         Mentat.Tokenizer
-        Mentat.SyntaxParser
+        Mentat.Program
         Mentat.Evaluator
         Mentat.Validator
         Mentat.FunctionBuilder

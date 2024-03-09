@@ -1,6 +1,6 @@
 module Mentat.Lexer where
 
-import Mentat.ParseTypes (BinOp(..), Bracket(..), Token(..))
+import Mentat.ParseTypes (BinOp(..), CompOp(..), Bracket(..), Token(..))
 import Prelude hiding (lex)
 
 lex :: String -> [Token]
@@ -18,12 +18,12 @@ lex (']':cs) = TClose Sqr : lex cs
 lex ('{':cs) = TOpen Curl : lex cs
 lex ('}':cs) = TClose Curl : lex cs
 lex (',':cs) = TSep : lex cs
-lex ('=':cs) = TOp Eql : lex cs
-lex ('<':'=':cs) = TOp LEq : lex cs
-lex ('>':'=':cs) = TOp GEq : lex cs
-lex ('<':cs) = TOp L : lex cs
-lex ('>':cs) = TOp G : lex cs
-lex ('!':'=':cs) = TOp NEq : lex cs
+lex ('=':cs) = (TOp $ Comp Eql) : lex cs
+lex ('<':'=':cs) = (TOp $ Comp LEq) : lex cs
+lex ('>':'=':cs) = (TOp $ Comp GEq) : lex cs
+lex ('<':cs) = (TOp $ Comp L) : lex cs
+lex ('>':cs) = (TOp $ Comp G) : lex cs
+lex ('!':'=':cs) = (TOp $ Comp NEq) : lex cs
 lex (':':'=':cs) = TAsgn : lex cs
 lex ('f':'a':'l':'s':'e':cs) =
   case cs of
