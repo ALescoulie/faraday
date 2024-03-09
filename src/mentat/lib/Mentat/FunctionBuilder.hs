@@ -75,7 +75,15 @@ translateFunction (Function name args expr) = do
   TransFunciton nameJS transArgs transExpr
 
 
-data TransConstraint = TransConstraint String String CompOp deriving(Show, Eq)
+data TransConstraint = TransConstraint TransFunciton TransFunciton CompOp deriving(Show, Eq)
+
+
+translateConstraint :: Constraint -> [String] -> TransConstraint
+translateConstraint (Constraint left right comp) domainVars = do
+  let leftFxn = TransFunciton "MentatExprLeft" (["mentatVars", "MentatFuncs"] ++ domainVars) (translateExpr left domainVars) 
+  let rightFxn = TransFunciton "MentatExprLeft" (["mentatVars", "MentatFuncs"] ++ domainVars) (translateExpr right domainVars)
+  TransConstraint leftFxn rightFxn comp
+
 
 
 -- | Takes in a program and outputs translated functions, constraints and expressions
@@ -87,7 +95,7 @@ translateProgram pg domainVars = do
 
   let cstrs = getPgCstrs pg
   
-  let transCstrs = map (\(Constraint left right comp) -> TransConstraint (translateExpr left domainVars) (translateExpr right domainVars) comp) cstrs
+  let transCstrs = map (\x -> translateConstraint x domainVars) cstrs
   
   let transExpr = map (\x -> translateExpr x []) $ getPgExprs pg
 

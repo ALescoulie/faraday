@@ -18,6 +18,8 @@ spec = do
       Right (fxns, cstrs, exprs) -> do
         it "Parses functions" $ do
           fxns `shouldBe` [(TransFunciton "mentatFuncf" ["mentatVars", "mentatFuncs", "x"] "(2.0)+((x)*(2.0))")]
+        it "Parses constraints" $ do
+          cstrs `shouldBe` [TransConstraint (TransFunciton "MentatExprLeft" ["mentatVars", "MentatFuncs"] "(mentatVars.get(x))*(2.0)") (TransFunciton "MentatExprLeft" ["mentatVars", "MentatFuncs"] "mentatVars.get(y)") Eql]
           
           
           
