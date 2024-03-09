@@ -39,10 +39,11 @@
             pkgs.python311
             pkgs.cabal-install
             pkgs.ghc
-            wasm.packages.${pkgs.system}.all_9_8
             pkgs.haskellPackages.haskell-language-server
             pkgs.haskellPackages.hindent
-          ];
+          ] ++ (if system != "aarch64-darwin" then [
+            wasm.packages.${system}.all_9_8
+          ] else []);
         };
       });
 }
