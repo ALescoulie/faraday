@@ -17,7 +17,7 @@ spec = do
       Left err -> error $ "unexpected error" ++ show err
       Right (fxns, cstrs, exprs) -> do
         it "Parses functions" $ do
-          fxns `shouldBe` ["function mentatFuncf(mentatVars, x) { return ((2.0)+((x)*(2.0))) }"]
+          fxns `shouldBe` [(TransFunciton "mentatFuncf" ["mentatVars", "mentatFuncs", "x"] "(2.0)+((x)*(2.0))")]
           
           
           

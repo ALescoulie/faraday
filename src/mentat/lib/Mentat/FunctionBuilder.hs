@@ -60,24 +60,26 @@ translateExpr (BinOpE op left right) args = do
   LT.unpack $ format ("(" % string % ")" % string % "(" % string % ")") leftText opStr rightText
 translateExpr (FxnE name argExprs) args = do
   let transArgs = map (\x -> translateExpr x []) argExprs
-  let argStr = translateArgString transArgs
-  LT.unpack $ format (" mentatFunc" % string % "(mentatVars, " % string % ")") name argStr
+  let argStr = translateArgString $ ["mentatArgs", "mentatFuncs"] ++ transArgs
+  LT.unpack $ format (" mentatFunc.get(" % string % ")(" % string % ")") name argStr
 
 
-translateFunction :: Function -> String
+data TransFunciton = TransFunciton String [String] String deriving(Show, Eq)
+
+translateFunction :: Function -> TransFunciton
 translateFunction (Function name args expr) = do
   let transExpr = translateExpr expr args
-  let transArgs = LT.unpack $ format ("(mentatVars, " % string % ")") $ translateArgString args
+  let transArgs = ["mentatVars", "mentatFuncs"] ++ args
   let body = LT.unpack $ format ("return (" % string % ")") transExpr
   let nameJS = LT.unpack $ format ("mentatFunc" % string) name
-  LT.unpack $ format ("function " % string % " { " % string % " }") (nameJS ++ transArgs) body
+  TransFunciton nameJS transArgs transExpr
 
 
-data ConstraintTransed = ConstraintTransed String String CompOp deriving(Show)
+data TransConstraint = TransConstraint String String CompOp deriving(Show, Eq)
 
 
 -- | Takes in a program and outputs translated functions, constraints and expressions
-translateProgram :: Program -> [String] -> Either Error ([String], [ConstraintTransed], [String])
+translateProgram :: Program -> [String] -> Either Error ([TransFunciton], [TransConstraint], [String])
 translateProgram pg domainVars = do
 
   let funcs = getPgFxns pg
@@ -85,7 +87,7 @@ translateProgram pg domainVars = do
 
   let cstrs = getPgCstrs pg
   
-  let transCstrs = map (\(Constraint left right comp) -> ConstraintTransed (translateExpr left domainVars) (translateExpr right domainVars) comp) cstrs
+  let transCstrs = map (\(Constraint left right comp) -> TransConstraint (translateExpr left domainVars) (translateExpr right domainVars) comp) cstrs
   
   let transExpr = map (\x -> translateExpr x []) $ getPgExprs pg
 
