@@ -22,4 +22,5 @@ parseConstraint tokTree = do
         Comp comp -> do
             if containsCompOp left || containsCompOp right then
               Left EmptyExpr else Right $ Constraint left right comp
+        _ -> Left EmptyExpr
     _ -> Left EmptyExpr

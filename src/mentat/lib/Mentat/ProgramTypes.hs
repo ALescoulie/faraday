@@ -11,13 +11,13 @@ data EvalType
 
 -- | A mentat function
 -- | Takes the name, argument names, and function expression
-data Function = Function String [String] Expr deriving(Show)
+data Function = Function String [String] Expr deriving(Show, Eq)
 
 
 -- | A mentat constraint
 -- | This is a mathmatical equation that can be repersented on a graph
 -- | Takes a left expression, a right expression, and a comparison operator
-data Constraint = Constraint Expr Expr CompOp deriving(Show)
+data Constraint = Constraint Expr Expr CompOp deriving(Show, Eq)
 
 filterVarStats :: [Statment] -> [Statment]
 filterVarStats [] = []

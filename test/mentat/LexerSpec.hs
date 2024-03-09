@@ -10,7 +10,7 @@ spec :: Spec
 spec = do
   describe "Lexing single Char Tokens" $ do
     describe "Parses single char BinOps" $ do
-      let cases = zip "+-*/^=<>" [Add, Sub, Mul, Div, Exp, Eql, L, G]
+      let cases = zip "+-*/^=<>" [Add, Sub, Mul, Div, Exp, (Comp Eql), (Comp L), (Comp G)]
       forM_ cases $ \(input, expected) ->
         it ("Parses " ++ show input) $ do lex [input] `shouldBe` [TOp expected]
     describe "Parses Brackets" $ do
@@ -20,9 +20,9 @@ spec = do
         it ("Parses " ++ show input) $ do lex [input] `shouldBe` [expected]
   describe "Parse multi Char Tokens" $ do
     let cases =
-          [ ("<=", TOp LEq)
-          , (">=", TOp GEq)
-          , ("!=", TOp NEq)
+          [ ("<=", TOp (Comp LEq))
+          , (">=", TOp (Comp GEq))
+          , ("!=", TOp (Comp NEq))
           , (":=", TAsgn)
           , ("uwu", TId "uwu")
           , ("owo", TId "owo")
@@ -43,7 +43,7 @@ spec = do
     it ("Parse " ++ show mulStr) $ do lex mulStr `shouldBe` mulToks
   describe "Parses full statments" $ do
     let cases =
-          [ ("1 <= 2", [TNumber 1, TOp LEq, TNumber 2])
+          [ ("1 <= 2", [TNumber 1, TOp (Comp LEq), TNumber 2])
           , ( "1 + (1 + 2)"
             , [ TNumber 1
               , TOp Add
@@ -53,7 +53,7 @@ spec = do
               , TNumber 2
               , TClose Paren
               ])
-          , ("true = false", [TTrue, TOp Eql, TFalse])
+          , ("true = false", [TTrue, TOp (Comp Eql), TFalse])
           , ("y)", [TId "y", TClose Paren])
           ]
     forM_ cases $ \(input, expected) ->

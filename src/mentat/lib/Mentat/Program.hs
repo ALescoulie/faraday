@@ -2,9 +2,12 @@ module Mentat.Program (parseProgram, getPgDomainVars, getPgVars, getPgFxns, getP
 
 import Prelude hiding (lex)
 import Mentat.Lexer (lex)
+
 import Mentat.ParseTypes
 import Mentat.ProgramTypes
+
 import Mentat.Tokenizer
+
 import Mentat.ExpressionParser
 import Mentat.DeclarationParser
 import Mentat.ConstraintParser

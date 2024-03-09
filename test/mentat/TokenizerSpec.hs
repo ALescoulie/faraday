@@ -16,7 +16,7 @@ spec = do
   describe "Parsing simple Token List into TokTrees" $ do
     let inputs =
           [ [TId "x", TOp Add, TId "y"]
-          , [TTrue, TOp Eql, TTrue]
+          , [TTrue, TOp (Comp Eql), TTrue]
           , [TId "x", TAsgn, TNumber 5.0]
           ]
     let results = map (\x -> map (\y -> TLeaf y) x) inputs

@@ -36,7 +36,7 @@ validateProgram pg = do
   let vars = HM.fromList $ map (\(PgVar i val) -> (i, val)) varStats
 
   let fxnStats = filterFxnStats pg
-  let fxns = HM.fromList $ map (\(PgFxn i val) -> (i, val)) varStats
+  let fxns = HM.fromList $ map (\(PgFxn i val) -> (i, val)) fxnStats
 
   exprVals <- sequence $ map (\(PgExpr x) -> evalExpr x vars fxns 1000) $ filterExprStats pg
   -- TODO: build system for testsing cstrs
