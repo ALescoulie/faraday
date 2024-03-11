@@ -1,7 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Mentat.FunctionBuilder where
 
+import GHC.Generics
 import Mentat.ParseTypes
 import Mentat.ProgramTypes
 import Mentat.Program
@@ -10,6 +12,7 @@ import Mentat.Validator
 import Formatting
 import qualified Data.Text.Lazy as LT
 import qualified Data.Map.Strict as HM
+import Data.Aeson
 
 -- | by conventaion all names will start with "mentatFunc" then have the function name
 -- | the hash map containing varriable values will always be the first argument of a fucntion and be called "mentatVars"
@@ -64,31 +67,79 @@ translateExpr (FxnE name argExprs) args = do
   LT.unpack $ format (" mentatFunc.get(" % string % ")(" % string % ")") name argStr
 
 
-data TransFunciton = TransFunciton String [String] String deriving(Show, Eq)
+data TransFunction = 
+  TransFunction { name :: String
+                , args :: [String]
+                , body :: String
+                  } deriving(Show, Eq, Generic)
 
-translateFunction :: Function -> TransFunciton
+instance ToJSON TransFunction
+
+translateFunction :: Function -> TransFunction
 translateFunction (Function name args expr) = do
   let transExpr = translateExpr expr args
   let transArgs = ["mentatVars", "mentatFuncs"] ++ args
   let body = LT.unpack $ format ("return (" % string % ")") transExpr
-  let nameJS = LT.unpack $ format ("mentatFunc" % string) name
-  TransFunciton nameJS transArgs transExpr
+  TransFunction name transArgs transExpr
 
 
-data TransConstraint = TransConstraint TransFunciton TransFunciton CompOp deriving(Show, Eq)
+data TransConstraint =
+  TransConstraint { left :: TransFunction
+                  , right :: TransFunction
+                  , comparison :: String
+                    } deriving(Show, Eq, Generic)
 
+instance ToJSON TransConstraint
 
 translateConstraint :: Constraint -> [String] -> TransConstraint
 translateConstraint (Constraint left right comp) domainVars = do
-  let leftFxn = TransFunciton "MentatExprLeft" (["mentatVars", "MentatFuncs"] ++ domainVars) (translateExpr left domainVars) 
-  let rightFxn = TransFunciton "MentatExprLeft" (["mentatVars", "MentatFuncs"] ++ domainVars) (translateExpr right domainVars)
-  TransConstraint leftFxn rightFxn comp
+  let leftFxn = TransFunction "MentatExprLeft" (["mentatVars", "MentatFuncs"] ++ domainVars) (translateExpr left domainVars) 
+  let rightFxn = TransFunction "MentatExprLeft" (["mentatVars", "MentatFuncs"] ++ domainVars) (translateExpr right domainVars)
+  TransConstraint leftFxn rightFxn $ show comp
+
+-- TODO: figure out which translit to use for json conversion later on
+data TransLit 
+  = TFloat Float
+  | TBool Bool deriving (Show, Generic)
+
+instance ToJSON TransLit
+
+translateLiteral :: Literal -> TransLit
+translateLiteral (RL n) = TFloat n
+translateLiteral (BoolL b) = TBool b
 
 
+translateVars :: Program -> Either Error [(String, TransLit)]
+translateVars pg = do
+  let vars = getPgVars pg
+  let fxns = getPgFxns pg
+
+  let varsList = HM.toList vars
+  let varMaybeEvaled = map (\(n, x) -> (n, evalExpr x vars fxns 1000)) varsList
+  let varNames = map (\(n, _) -> n) varMaybeEvaled
+  varVals <- sequence $ map (\(_, x) -> fmap translateLiteral x) varMaybeEvaled
+  Right $ zip varNames varVals
+
+
+  
+
+
+
+
+data TransProgram =
+  TransProgram { varriables :: [(String, TransLit)]
+               , functions :: [TransFunction]
+               , constraints :: [TransConstraint]
+               , expressions :: [String]
+                 } deriving(Show, Generic)
+
+instance ToJSON TransProgram
 
 -- | Takes in a program and outputs translated functions, constraints and expressions
-translateProgram :: Program -> [String] -> Either Error ([TransFunciton], [TransConstraint], [String])
+translateProgram :: Program -> [String] -> Either Error TransProgram
 translateProgram pg domainVars = do
+  
+  transVars <- translateVars pg
 
   let funcs = getPgFxns pg
   let transFuncs = map translateFunction $ HM.elems funcs
@@ -99,5 +150,5 @@ translateProgram pg domainVars = do
   
   let transExpr = map (\x -> translateExpr x []) $ getPgExprs pg
 
-  Right (transFuncs, transCstrs, transExpr)
+  Right $ TransProgram transVars transFuncs transCstrs transExpr
 
