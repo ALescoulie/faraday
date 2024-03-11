@@ -58,6 +58,6 @@ spec = do
         let cases = zip pgExprs pg2ExpectedResults
         forM_ cases $ \(input, expected) -> do
           it ("Evaluates: " ++ show input) $ do
-            let result = evalExpr input pgVars pgFxns 1000 
+            let result = evalExpr input pgVars pgFxns 1000
             toList result `shouldBe` [expected]
       Left err -> error $ "unexpected error " ++ show err

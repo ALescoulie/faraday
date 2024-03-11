@@ -10,7 +10,10 @@ spec :: Spec
 spec = do
   describe "Lexing single Char Tokens" $ do
     describe "Parses single char BinOps" $ do
-      let cases = zip "+-*/^=<>" [Add, Sub, Mul, Div, Exp, (Comp Eql), (Comp L), (Comp G)]
+      let cases =
+            zip
+              "+-*/^=<>"
+              [Add, Sub, Mul, Div, Exp, (Comp Eql), (Comp L), (Comp G)]
       forM_ cases $ \(input, expected) ->
         it ("Parses " ++ show input) $ do lex [input] `shouldBe` [TOp expected]
     describe "Parses Brackets" $ do
