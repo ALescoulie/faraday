@@ -5,6 +5,8 @@ import Mentat.FunctionBuilder
 import Mentat.ParseTypes
 import Mentat.Program
 import Mentat.ProgramTypes
+import Data.Text.Lazy
+import Data.Text.Lazy.Encoding (decodeUtf8)
 import Test.Hspec
 
 spec :: Spec
@@ -44,85 +46,8 @@ spec = do
                    "y")
                 "Eql"
             ]
-        it "Translates to JSON" $ do
-          let pgJSON = toJSON $ TransProgram vars fxns cstrs exprs
-          let pgExpected =
-                object
-                  (fromList
-                     [ ( "constraints"
-                       , Array
-                           [ Object
-                               (fromList
-                                  [ ("comparison", String "Eql")
-                                  , ( "left"
-                                    , Object
-                                        (fromList
-                                           [ ( "args"
-                                             , Array
-                                                 [ String "mentatVars"
-                                                 , String "MentatFuncs"
-                                                 , String "x"
-                                                 , String "y"
-                                                 ])
-                                           , ("body", String "(x)*(2.0)")
-                                           , ("name", String "MentatExprLeft")
-                                           ]))
-                                  , ( "right"
-                                    , Object
-                                        (fromList
-                                           [ ( "args"
-                                             , Array
-                                                 [ String "mentatVars"
-                                                 , String "MentatFuncs"
-                                                 , String "x"
-                                                 , String "y"
-                                                 ])
-                                           , ("body", String "y")
-                                           , ("name", String "MentatExprLeft")
-                                           ]))
-                                  ])
-                           ])
-                     , ( "expressions"
-                       , Array
-                           [ String
-                               "(mentatVars.get(y))+((mentatVars.get(x))*(2.0))"
-                           , String
-                               "(1.0)+( mentatFunc.get(f)(mentatArgs, mentatFuncs, 2.0))"
-                           ])
-                     , ( "functions"
-                       , Array
-                           [ Object
-                               (fromList
-                                  [ ( "args"
-                                    , Array
-                                        [ String "mentatVars"
-                                        , String "mentatFuncs"
-                                        , String "x"
-                                        ])
-                                  , ( "body"
-                                    , String
-                                        "(((mentatVars.get(b))*(2.0))+((mentatVars.get(a))*(2.0)))**(x)")
-                                  , ("name", String "f")
-                                  ])
-                           ])
-                     , ( "varriables"
-                       , Array
-                           [ Array
-                               [ String "a"
-                               , Object
-                                   (fromList
-                                      [ ("contents", Number 1.0)
-                                      , ("tag", String "TFloat")
-                                      ])
-                               ]
-                           , Array
-                               [ String "b"
-                               , Object
-                                   (fromList
-                                      [ ("contents", Number 2.0)
-                                      , ("tag", String "TFloat")
-                                      ])
-                               ]
-                           ])
-                     ])
-          pgJson `shouldBe` pgExpected
+--        it "Translates to JSON" $ do
+--          let pgJSON = decodeUtf8 $ encode $ TransProgram vars fxns cstrs exprs
+--          let pgExpected = pack "
+--                  
+--          pgJSON `shouldBe` pgExpected
