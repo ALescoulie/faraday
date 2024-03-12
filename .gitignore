@@ -1,4 +1,6 @@
 build/*
 app/*
 node_modules
+dist-newstyle
+
 
