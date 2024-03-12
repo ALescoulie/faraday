@@ -1,8 +1,11 @@
---{-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE ForeignFunctionInterface #-}
 
-module Main where
+module MentatInterface where
 
-import System.Environment (getArgs)
+import Foreign.C.Types
+import Foreign.C.String
+import Foreign.Ptr
+import Foreign.Marshal.Array
 
 import Data.Aeson
 import Data.Text.Lazy.Encoding (decodeUtf8)
@@ -29,15 +32,15 @@ translateMentatProgram pgText domainVars = do
 --foreign export javascript "translateMentatProgram"
 --  translateMentatProgram :: [String] -> [String] -> Text
 
-main :: IO ()
+foreign export ccall c_trans_mentat_program :: Ptr CString -> CInt -> Ptr CString -> CInt -> IO (CString)
 
-main = do
-  args <- getArgs
+c_trans_mentat_program :: Ptr CString -> CInt -> Ptr CString -> CInt -> IO (CString)
+c_trans_mentat_program pgCLines pgLen pgCDomVars pgCVarsLen = do
+  pgCStr <- peekArray (fromIntegral pgLen) pgCLines
+  pgLines <- sequence $ map peekCString pgCStr
+  pgCStrDomVars <-peekArray (fromIntegral pgCVarsLen) pgCDomVars
+  pgDomVars <- sequence $ map peekCString pgCStrDomVars
+  let pgTrans = T.unpack $ translateMentatProgram pgLines pgDomVars
+  newCString pgTrans
 
-  case args of
-    [fileName] -> do
-      content <- readFile fileName
-      let pgLines = lines content
-      let pg = translateMentatProgram pgLines ["x", "y"]
-      print pg
 

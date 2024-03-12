@@ -39,6 +39,7 @@
             pkgs.python311
             pkgs.cabal-install
             pkgs.ghc
+            pkgs.wizer
             pkgs.haskellPackages.haskell-language-server
             pkgs.haskellPackages.hindent
           ] ++ (if system != "aarch64-darwin" then [

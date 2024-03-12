@@ -3,7 +3,12 @@ name:                   mentat-wasm
 version:                0.1.0
 
 executable mentat-wasm
+    c-sources:           wasm-init.c
     hs-source-dirs:     src
+    ghc-options:        -optl-mexec-model=reactor -no-hs-main -stubdir stub
+                        "-optl-Wl\
+                        \,--export=c_trans_mentat_program\
+                        \"
     main-is:            MentatInterface.hs
     build-depends:      base >4.17 && <5
                     ,   Mentat

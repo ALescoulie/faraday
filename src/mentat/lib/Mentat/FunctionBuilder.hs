@@ -9,7 +9,6 @@ import Mentat.ProgramTypes
 import Mentat.Program
 import Mentat.Evaluator
 import Mentat.Validator
-import Formatting
 import qualified Data.Text.Lazy as LT
 import qualified Data.Map.Strict as HM
 import Data.Aeson
@@ -28,7 +27,7 @@ translateLit (BoolL False) = "false"
 
 
 translateVar :: String -> String
-translateVar s = LT.unpack $ format ("mentatVars.get(" % string % ")") s
+translateVar s = "mentatVars.get(" ++ s ++ ")"
 
 
 translateOp :: BinOp -> String
@@ -60,11 +59,11 @@ translateExpr (BinOpE op left right) args = do
   let leftText = translateExpr left args
   let rightText = translateExpr right args
   let opStr = translateOp op
-  LT.unpack $ format ("(" % string % ")" % string % "(" % string % ")") leftText opStr rightText
+  "(" ++ leftText ++ ")" ++ opStr ++ "(" ++ rightText ++ ")"
 translateExpr (FxnE name argExprs) args = do
   let transArgs = map (\x -> translateExpr x []) argExprs
   let argStr = translateArgString $ ["mentatArgs", "mentatFuncs"] ++ transArgs
-  LT.unpack $ format (" mentatFunc.get(" % string % ")(" % string % ")") name argStr
+  " mentatFunc.get(" ++ name ++  ")(" ++ argStr ++ ")"
 
 
 data TransFunction = 
@@ -79,7 +78,7 @@ translateFunction :: Function -> TransFunction
 translateFunction (Function name args expr) = do
   let transExpr = translateExpr expr args
   let transArgs = ["mentatVars", "mentatFuncs"] ++ args
-  let body = LT.unpack $ format ("return (" % string % ")") transExpr
+  let body = "return (" ++ transExpr ++ ")"
   TransFunction name transArgs transExpr
 
 
