@@ -4,19 +4,29 @@
   "descrition": "",
   "main": "src/index.ts",
   "scripts": {
-    "build": "python build.py site build app",
-    "start": "python3 -m http.server",
-    "prebuild": "rollup -c",
+    "build": "rollup -c",
+    "start": "python3 -m http.server -d build",
+    "prebuild": "rm -r build && cp -r src/public build",
     "prestart": "npm run build"
   },
   "dependencies": {
-    "@rollup/plugin-commonjs": "^25.0.7",
-    "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-typescript": "^11.1.6",
+    "@types/react": "^18.2.65",
+    "@types/react-dom": "^18.2.21",
     "commonjs": "^0.0.1",
     "paper": "^0.12.17",
-    "rollup": "^4.12.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "tslib": "^2.6.2",
     "typescript": "^5.3.3"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.0",
+    "@babel/preset-react": "^7.23.3",
+    "@rollup/plugin-babel": "^6.0.4",
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-replace": "^5.0.5",
+    "rollup": "^4.12.0"
   }
 }
