@@ -14,14 +14,32 @@
         pkgs = nixpkgs.legacyPackages.${system};
         wasm = ghc-wasm-meta;
 
+        build-mentat-wasm-haskell = pkgs.runCommand "make-hs-wasm" {
+          buildInputs = [
+            wasm.packages.${system}.all_9_8
+            pkgs.cabal-install
+          ];
+        } ''
+          cabal build --project-file=cabal-wasm.project mentat-wasm
+          '';
 
+        build-mentat-wasm = pkgs.runCommand "make-wasm-interface" {
+          buildInputs = [
+            pkgs.wizer
+            build-mentat-wasm-haskell
+          ];
+        } ''
+          wizer --allow-wasi --wasm-bulk-memory true "$(cabal --project-file=cabal-wasm.project list-bin -v0 mentat-wasm)" -o mentat-interop.wasmist-bin -v0 mentat-wasm)" -o src/frontend/wasm/mentat-interop.wasm
+          '';
+            
+                      
 
         # DON'T FORGET TO PUT YOUR PACKAGE NAME HERE, REMOVING `throw`
         packageName = "Faraday";
 
       in {
-
-        
+        packages.mentat-wasm-haskell = build-mentat-wasm-haskell;
+        packages.mentat-wasm = build-mentat-wasm;
 
         devShells.default = pkgs.mkShell {
           buildInputs = [ 

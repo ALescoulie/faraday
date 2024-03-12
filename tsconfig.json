@@ -6,10 +6,12 @@
     "module": "ES2015",
     "lib": ["ES5", "ES6", "DOM"],
     "noEmit": true,
+    "moduleResolution":"node",
     "allowImportingTsExtensions": true,
     "esModuleInterop": true, 
     "forceConsistentCasingInFileNames": true, 
     "strict": true,                   
-    "skipLibCheck": true              
+    "skipLibCheck": true,
+    "jsx": "react"
   }
 }

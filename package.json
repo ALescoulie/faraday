@@ -10,6 +10,9 @@
     "prestart": "npm run build"
   },
   "dependencies": {
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.0",
+    "@mui/material": "^5.15.12",
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/react": "^18.2.65",
     "@types/react-dom": "^18.2.21",
