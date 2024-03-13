@@ -22,6 +22,8 @@ import {styled, useTheme} from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Toolbar from '@mui/material/Toolbar';
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
+import Stack from '@mui/material/Stack';
+import Paper from '@mui/material/Paper';
 
 
 interface InputLineProps {
@@ -85,16 +87,13 @@ function InputLineItem (props: InputLineProps) {
 const drawerWidth = 20
 
 
-
-
-
 const DrawerHeader = styled('div')(({ alignment }) => ({
     display: 'flex',
     alignItems: alignment,
     justifyContent: 'flex-end'
 }));
 
-function InputDrawer (open, drawerCloseHandler) {
+function InputDrawer (open: boolean, drawerCloseHandler: any) {
 
     return (
         <Drawer
@@ -119,7 +118,7 @@ function InputDrawer (open, drawerCloseHandler) {
     )
 }
 
-
+const tabsSize = 48
 
 
 function FaradayUI () {
@@ -172,7 +171,7 @@ function FaradayUI () {
     }));
 
     return (
-        <Box sx={{ display: 'flex' }}>
+        <Box sx={{ display: 'flex', marginTop: `${tabsSize}px`}}>
             <CssBaseline />
             <AppBar position="fixed" open={open}>
             <Toolbar>
@@ -202,72 +201,21 @@ function FaradayUI () {
 }
 
 
-interface TabPannelProps {
-    children?: React.ReactNode;
-    index: number;
-    value: number;
-}
 
-
-function CustomTabPanel (props: TabPannelProps) {
-    const { children, value, index, ...other } = props;
-
-    return (
-        <div
-            role="tabpanel"
-            hidden={value !== index}
-            aria-labelledby={`simple-tab-${index}`}
-            {...other}
-        >
-            {value === index && (
-                <Box sx={{p: 3}}>
-                    <Typography>{children}</Typography>
-                </Box>
-            )}
-
-        </div>
-    );
-}
-
-function a11yProps(index: number) {
-  return {
-    id: `simple-tab-${index}`,
-    'aria-controls': `simple-tabpanel-${index}`,
-  };
-}
-
+const Item = styled(Paper)(({ theme }) => ({
+  backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
+  ...theme.typography.body2,
+  padding: theme.spacing(0.5),
+  textAlign: 'center',
+  color: theme.palette.text.secondary,
+}));
 
 function Faraday() {
-    const [value, setValue] = React.useState(0);
 
-    const handleChange = (event: React.SyntheticEvent, newValue: number) => {
-        setValue(newValue);
-    };
 
     return (
-        <Box sx={{ width: '100%' }}>
-            <Box xs={{ borderBottom: 1, borderColor: 'grey' }}>
-                <Tabs
-                    value={value}
-                    onChange={handleChange}
-                    aria-label="basic tabs example"
-                    variant="scrollable"
-                >
-                  <Tab label="Item One" {...a11yProps(0)} />
-                  <Tab label="Item Two" {...a11yProps(1)} />
-                  <Tab label="Item Three" {...a11yProps(2)} />
-                  <Tab label="New Tab" {...a11yProps(3)} />
-                </Tabs>
-            </Box>
-          <CustomTabPanel value={value} index={0}>
+        <Box sx={{width: '100%'}}>
             {FaradayUI()}
-          </CustomTabPanel>
-          <CustomTabPanel value={value} index={1}>
-            {FaradayUI()}
-          </CustomTabPanel>
-          <CustomTabPanel value={value} index={2}>
-            {FaradayUI()}
-          </CustomTabPanel>
         </Box>
     );
 }
