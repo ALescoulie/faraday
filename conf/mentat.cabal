@@ -82,10 +82,10 @@ library
 
     -- Other library packages from which modules are imported.
     build-depends:
-        base ^>=4.17.2.1,
+        base >=4.17 && < 5,
         containers,
-        formatting,
         text,
+        aeson,
         split
                       
 
@@ -122,6 +122,18 @@ test-suite spec
         base ^>=4.17.2.1,
         Mentat,
         hspec==2.*,
-        containers
+        containers,
+        text,
+        aeson
     build-tool-depends: hspec-discover:hspec-discover == 2.*
 
+executable MentatInterface
+    hs-source-dirs:     ../src/mentat-wasm/src
+    ghc-options:        -no-hs-main -c -stubdir stub
+    main-is:            MentatInterface.hs
+    build-depends:      base >4.17 && <5
+                    ,   Mentat
+                    ,   text
+                    ,   aeson
+
+    default-language:   Haskell2010
