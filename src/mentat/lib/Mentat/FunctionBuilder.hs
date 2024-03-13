@@ -120,11 +120,6 @@ translateVars pg = do
   Right $ zip varNames varVals
 
 
-  
-
-
-
-
 data TransProgram =
   TransProgram { varriables :: [(String, TransLit)]
                , functions :: [TransFunction]
