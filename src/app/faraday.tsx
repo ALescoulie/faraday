@@ -45,17 +45,11 @@ function setChecked(event: React.ChangeEvent<HTMLInputElement>,
 };
 
 
-// Deletes line when delete button pressed
-function inputLineDelete (index: number) {
-    console.log(`hit delete button for index ${index}`);
-}
-
-
-
 function InputLineItem (
     index: number,
     item: string,
-    handleInputChange: (index: number, item: string) => void
+    handleInputChange: (index: number, item: string) => void,
+    handleInputDelete: (index: number) => void
     ) 
 {
 
@@ -63,13 +57,13 @@ function InputLineItem (
         <ListItem
             key={index}
             secondaryAction={
-              <IconButton edge="end" aria-label="comments">
+              <IconButton edge="end" aria-label="comments" index={index} onClick={() => handleInputDelete(index)}>
                 <DeleteIcon />
               </IconButton>
             }
             disablePadding
         >
-            <ListItemButton role={undefined} onClick={() => inputLineDelete(index)} dense>
+            <ListItemButton role={undefined}  dense>
                 <ListItemIcon>
                     <Checkbox
                         icon={<CircleIcon/>}
@@ -111,7 +105,8 @@ function InputDrawer(
     open: boolean,
     drawerCloseHandler: any,
     lineInputItems: string[],
-    handleInputChange: (index: number, value: string, inputItems: string[]) => void
+    handleInputChange: (index: number, value: string) => void,
+    handleInputDelete: (index: number) => void
     )
 {
 
@@ -136,8 +131,9 @@ function InputDrawer(
                     lineInputItems.map((item, index) => (
                         InputLineItem(index,
                                       item,
-                                      (index: number, item: string) => (handleInputChange(index, item, lineInputItems))
-                                      )
+                                      (index: number, item: string) => (handleInputChange(index, item)),
+                                      (index: number) => (handleInputDelete(index))
+                                     )
                         )
                     )
                 }
@@ -201,8 +197,8 @@ function FaradayUI () {
       }),
     }));
 
-    const handleInputChange = (index: number, item: string, inputItems: string[]) => {
-        const newItems = [...inputItems];
+    const handleInputChange = (index: number, item: string) => {
+        const newItems = [...mentatLines];
         newItems[index] = item;
         
         if (index === newItems.length - 1) {
@@ -211,6 +207,17 @@ function FaradayUI () {
             setMentatLines(newItems);
         }
     };
+
+    const handleInputDelete = (index: number) => {
+        const newItems = [...mentatLines];
+        console.log(`deleting ${index} from current items: ${newItems}`);
+        if (newItems.length === 1) {
+            setMentatLines(['']);
+        } else {
+            setMentatLines(newItems.slice(0, index).concat(newItems.slice(index + 1)));
+        }
+    };
+
 
     return (
         <Box sx={{ display: 'flex', marginTop: `${tabsSize}px`}}>
@@ -231,11 +238,11 @@ function FaradayUI () {
                 </Typography>
             </Toolbar>
             </AppBar>
-            {InputDrawer(open, handleDrawerClose, mentatLines, handleInputChange)}
+            {InputDrawer(open, handleDrawerClose, mentatLines, handleInputChange, handleInputDelete)}
             <Main open={open}>
                 <DrawerHeader />
                 <Typography paragraph>
-                    
+                    {mentatLines.toString()}
                 </Typography>
             </Main>
         </Box>
