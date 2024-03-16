@@ -50,8 +50,14 @@ function inputLineDelete (index: number) {
     console.log(`hit delete button for index ${index}`);
 }
 
-function InputLineItem (props: InputLineProps) {
-    const {index, content, graph, ...other} = props;
+
+
+function InputLineItem (
+    index: number,
+    item: string,
+    handleInputChange: (index: number, item: string) => void
+    ) 
+{
 
     return (
         <ListItem
@@ -69,13 +75,21 @@ function InputLineItem (props: InputLineProps) {
                         icon={<CircleIcon/>}
                         checkedIcon={<CircleOutlined />}
                         defaultChecked
-                        disabled={graph}
+                        disabled={true}
                         onChange={(event) => setChecked(event, index)}
                     />
                 </ListItemIcon>
                 <ListItemText
                     id={`input${index}`}
-                    primary={<TextField id={`input ${index}`} multiline variant="filled" />}
+                    primary={
+                        <TextField
+                            id={`input ${index}`}
+                            value={item}
+                            multiline
+                            variant="filled"
+                            onChange={(e) => (handleInputChange(index, e.target.value))} 
+                        />
+                             }
                 >
                 </ListItemText>
             </ListItemButton>
@@ -93,7 +107,13 @@ const DrawerHeader = styled('div')(({ alignment }) => ({
     justifyContent: 'flex-end'
 }));
 
-function InputDrawer (open: boolean, drawerCloseHandler: any) {
+function InputDrawer(
+    open: boolean,
+    drawerCloseHandler: any,
+    lineInputItems: string[],
+    handleInputChange: (index: number, value: string, inputItems: string[]) => void
+    )
+{
 
     return (
         <Drawer
@@ -112,18 +132,29 @@ function InputDrawer (open: boolean, drawerCloseHandler: any) {
             </DrawerHeader>
             <Divider />
             <List>
-                <InputLineItem index={0} graph={false} content="" />
+                {
+                    lineInputItems.map((item, index) => (
+                        InputLineItem(index,
+                                      item,
+                                      (index: number, item: string) => (handleInputChange(index, item, lineInputItems))
+                                      )
+                        )
+                    )
+                }
             </List>
         </Drawer>
     )
 }
+
 
 const tabsSize = 48
 
 
 function FaradayUI () {
 
-    const [open, setOpen] = React.useState(false); 
+    const [open, setOpen] = React.useState(false);
+    const [mentatLines, setMentatLines] = React.useState(['']);
+    
 
     const handleDrawerOpen = () => {
         setOpen(true);
@@ -162,13 +193,24 @@ function FaradayUI () {
       }),
       ...(open && {
         width: `calc(100% - ${drawerWidth}%)`,
-        marginLeft: `${drawerWidth}px`,
+        marginLeft: `${drawerWidth}%`,
         transition: theme.transitions.create(['margin', 'width'], {
           easing: theme.transitions.easing.easeOut,
           duration: theme.transitions.duration.enteringScreen,
         }),
       }),
     }));
+
+    const handleInputChange = (index: number, item: string, inputItems: string[]) => {
+        const newItems = [...inputItems];
+        newItems[index] = item;
+        
+        if (index === newItems.length - 1) {
+            setMentatLines([...newItems, '']);
+        } else {
+            setMentatLines(newItems);
+        }
+    };
 
     return (
         <Box sx={{ display: 'flex', marginTop: `${tabsSize}px`}}>
@@ -189,17 +231,16 @@ function FaradayUI () {
                 </Typography>
             </Toolbar>
             </AppBar>
-            {InputDrawer(open, handleDrawerClose)}
+            {InputDrawer(open, handleDrawerClose, mentatLines, handleInputChange)}
             <Main open={open}>
                 <DrawerHeader />
                 <Typography paragraph>
-                    insert canvas here
+                    
                 </Typography>
             </Main>
         </Box>
     )
 }
-
 
 
 const Item = styled(Paper)(({ theme }) => ({
