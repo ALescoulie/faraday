@@ -7,7 +7,9 @@ import GHC.Generics
 import GHC.IO.Encoding (utf8)
 import GHC.Foreign
 
+
 import Foreign.StablePtr
+import Foreign (free)
 
 import Data.Aeson
 import Data.ByteString.Lazy.UTF8 (fromString, toString)
@@ -40,8 +42,19 @@ instance FromJSON MentatInputJson
 
 --foreign export javascript "translateMentatProgram"
 --  translateMentatProgram :: [String] -> [String] -> Text
+-- Partially based on: https://github.com/bradrn/brassica/blob/master/gui/brassica-interop-wasm/src/BrassicaInterop.hs
 
-foreign export ccall c_trans_mentat_program :: CString -> Int -> IO (StablePtr CStringLen)
+getString :: StablePtr CStringLen -> IO CString
+getString = fmap fst . deRefStablePtr
+
+getStringLen :: StablePtr CStringLen -> IO Int
+getStringLen = fmap snd . deRefStablePtr
+
+freeStableCStringLen :: StablePtr CStringLen -> IO ()
+freeStableCStringLen ptr = do
+    (cstr, _) <- deRefStablePtr ptr
+    free cstr
+    freeStablePtr ptr
 
 c_trans_mentat_program :: CString -> Int -> IO (StablePtr CStringLen)
 c_trans_mentat_program pgData pgLen  = do
@@ -53,4 +66,9 @@ c_trans_mentat_program pgData pgLen  = do
       cTransPgJson <- newCStringLen utf8 transPgJson
       newStablePtr cTransPgJson 
     Nothing -> error "Failed to parse input into json"
+
+foreign export ccall c_trans_mentat_program :: CString -> Int -> IO (StablePtr CStringLen)
+foreign export ccall getString :: StablePtr CStringLen -> IO CString
+foreign export ccall getStringLen :: StablePtr CStringLen -> IO Int
+foreign export ccall freeStableCStringLen :: StablePtr CStringLen -> IO ()
 
