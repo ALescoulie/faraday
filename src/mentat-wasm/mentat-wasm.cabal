@@ -8,6 +8,11 @@ executable mentat-wasm
     ghc-options:        -optl-mexec-model=reactor -no-hs-main -stubdir stub
                         "-optl-Wl\
                         \,--export=c_trans_mentat_program\
+                        \,--export=getString\
+                        \,--export=getStringLen\
+                        \,--export=freeStableCStringLen\
+                        \,--export=malloc\
+                        \,--export=free\
                         \"
     main-is:            MentatInterface.hs
     build-depends:      base >4.17 && <5
