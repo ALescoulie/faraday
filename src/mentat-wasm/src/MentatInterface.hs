@@ -1,14 +1,16 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module MentatInterface where
 
-import Foreign.C.Types
-import Foreign.C.String
-import Foreign.Ptr
-import Foreign.Marshal.Array
+import GHC.Generics
+import GHC.IO.Encoding (utf8)
+import GHC.Foreign
+
+import Foreign.StablePtr
 
 import Data.Aeson
-import Data.Text.Lazy.Encoding (decodeUtf8)
+import Data.ByteString.Lazy.UTF8 (fromString, toString)
 import Data.Either (fromRight)
 import qualified Data.Text.Lazy as T
 
@@ -18,29 +20,37 @@ import Mentat.Program
 import Mentat.FunctionBuilder
 
 
-translateMentatProgram :: [String] -> [String] -> T.Text
-translateMentatProgram [] _ = T.empty
+translateMentatProgram :: [String] -> [String] -> String
+translateMentatProgram [] _ = ""
 translateMentatProgram pgText domainVars = do
   let maybePg = parseProgram pgText domainVars
 
   let transPg = maybePg >>= (\x -> translateProgram x domainVars)
   
   case transPg of
-    Right pg -> decodeUtf8 $ encode pg
+    Right pg -> toString $ encode pg
     Left err -> error $ "syntax error: " ++ show err
+
+data MentatInputJson =
+  MentatInputJson { pgLines :: [String]
+                  , domVars :: [String]
+                    } deriving(Show, Eq, Generic)
+
+instance FromJSON MentatInputJson
 
 --foreign export javascript "translateMentatProgram"
 --  translateMentatProgram :: [String] -> [String] -> Text
 
-foreign export ccall c_trans_mentat_program :: Ptr CString -> CInt -> Ptr CString -> CInt -> IO (CString)
+foreign export ccall c_trans_mentat_program :: CString -> Int -> IO (StablePtr CStringLen)
 
-c_trans_mentat_program :: Ptr CString -> CInt -> Ptr CString -> CInt -> IO (CString)
-c_trans_mentat_program pgCLines pgLen pgCDomVars pgCVarsLen = do
-  pgCStr <- peekArray (fromIntegral pgLen) pgCLines
-  pgLines <- sequence $ map peekCString pgCStr
-  pgCStrDomVars <-peekArray (fromIntegral pgCVarsLen) pgCDomVars
-  pgDomVars <- sequence $ map peekCString pgCStrDomVars
-  let pgTrans = T.unpack $ translateMentatProgram pgLines pgDomVars
-  newCString pgTrans
-
+c_trans_mentat_program :: CString -> Int -> IO (StablePtr CStringLen)
+c_trans_mentat_program pgData pgLen  = do
+  pgStr <- peekCStringLen utf8 (pgData, pgLen)
+  let inputJson = decode $ fromString pgStr
+  case inputJson of
+    Just (MentatInputJson pgLines domVars) -> do
+      let transPgJson = translateMentatProgram pgLines domVars
+      cTransPgJson <- newCStringLen utf8 transPgJson
+      newStablePtr cTransPgJson 
+    Nothing -> error "Failed to parse input into json"
 
