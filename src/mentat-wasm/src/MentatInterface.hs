@@ -7,7 +7,7 @@ import GHC.Generics
 import GHC.IO.Encoding (utf8)
 import GHC.Foreign
 
-
+import Foreign.C hiding (newCStringLen, peekCStringLen)
 import Foreign.StablePtr
 import Foreign (free)
 
