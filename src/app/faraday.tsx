@@ -25,6 +25,7 @@ import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import Stack from '@mui/material/Stack';
 import Paper from '@mui/material/Paper';
 
+import { MentatCompiler, initMentatCompiler } from './mentat.ts'
 
 interface InputLineProps {
     index: number;
@@ -150,6 +151,15 @@ function FaradayUI () {
 
     const [open, setOpen] = React.useState(false);
     const [mentatLines, setMentatLines] = React.useState(['']);
+    const [compiler, setCompilerInstanse] = React.useState<MentatCompiler | null>(null);
+   
+    React.useEffect(() => {
+        initMentatCompiler("wasm/mentat-interop.wasm").then((compiler) => {
+            setCompilerInstanse(compiler);
+        }).catch((error) => {
+            console.error("Error: ", error );
+        });
+    }, []);
     
 
     const handleDrawerOpen = () => {
@@ -242,7 +252,11 @@ function FaradayUI () {
             <Main open={open}>
                 <DrawerHeader />
                 <Typography paragraph>
-                    {mentatLines.toString()}
+                    {compiler ? (
+                        compiler.compileMentatJson(mentatLines, ["x", "y"])
+                    ) : (
+                        "Loading ..."
+                    )}
                 </Typography>
             </Main>
         </Box>

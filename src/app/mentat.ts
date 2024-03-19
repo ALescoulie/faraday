@@ -1,4 +1,4 @@
-import { WASI } from '@bjorn3/browser_wasi_shim'
+import { initMentatInterop, MentatInterop } from './mentat-interop'
 
 interface MentatInput {
     pgLines: string[];
@@ -9,22 +9,10 @@ const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
 export class MentatCompiler {
-    #hsMalloc: CallableFunction
-    #hsFree: CallableFunction
-    #getHsStrLen: CallableFunction
-    #getHsStr: CallableFunction
-    #freeHsStrLen: CallableFunction
-    #transMentatPg: CallableFunction
-    #hsMem: WebAssembly.Memory
+    #mentat: MentatInterop
 
-    constructor(mentatWasm: WebAssembly.Instance) {
-        this.#hsFree = mentatWasm.exports.free as CallableFunction;
-        this.#hsMalloc = mentatWasm.exports.malloc as CallableFunction;
-        this.#freeHsStrLen = mentatWasm.exports.freeStableCStringLen as CallableFunction;
-        this.#getHsStr = mentatWasm.exports.getString as CallableFunction;
-        this.#getHsStrLen = mentatWasm.exports.getStringLen as CallableFunction;
-        this.#transMentatPg = mentatWasm.exports.c_trans_mentat_program as CallableFunction;
-        this.#hsMem = mentatWasm.exports.memory as WebAssembly.Memory;
+    constructor(mentat: MentatInterop) {
+        this.#mentat = mentat;
     }
 
     compileMentatJson(mentatLines: string[], domainVars: string[]): String {
@@ -36,38 +24,17 @@ export class MentatCompiler {
             domVars: domainVars
         };
 
-        const inputJson = JSON.stringify(mentatIn) + '\0';
-
-        const inJsonBytes = encoder.encode(inputJson);
-
-        const inLen = inJsonBytes.byteLength;
-
-        console.log("Allocating memory for input");
-        const inPtr = this.#hsMalloc(inLen);
+        const inputJson = JSON.stringify(mentatIn);
+        var output = this.#mentat.translateMentatProgram(inputJson);
         
-        console.log("writing input to memory buffer");
-        new Uint8Array(this.#hsMem.buffer, inPtr, inLen).set(inJsonBytes);
-
-        console.log("translating mentat program")
-        const outCStrLen = this.#transMentatPg(inPtr, inLen);
-        try {
-            const outJsonLen = this.#getHsStrLen(outCStrLen);
-            const outJsonPtr = this.#getHsStr(outCStrLen);
-            const outJsonBytes = new Uint8Array(this.#hsMem.buffer, outJsonPtr, outJsonLen);
-            var output = decoder.decode(outJsonBytes);
-        } finally {
-            console.log("freeing memory");
-            this.#freeHsStrLen(outCStrLen);
-            this.#hsFree(inPtr);
-        }
         return output;
     }
 }
 
 
-export async function initMentatCompiler(wasmBinaryPath: Response): Promise<MentatCompiler> {
-    const wasm = await WebAssembly.instantiateStreaming(wasmBinaryPath);
-    return new MentatCompiler(wasm.instance);
+export async function initMentatCompiler(wasmBinaryPath: string): Promise<MentatCompiler> {
+    const  mentat = await initMentatInterop("wasm/mentat-interop.wasm");
+    return new MentatCompiler(mentat);
 }
 
 

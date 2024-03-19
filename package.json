@@ -6,10 +6,11 @@
   "scripts": {
     "build": "rollup -c -w",
     "start": "python3 -m http.server -d build",
-    "prebuild": "rm -r build && cp -r src/public build",
+    "prebuild": "rm -r build && cp -r src/public build && cp -r src/app/wasm build/wasm",
     "test": "jest"
   },
   "dependencies": {
+    "@bjorn3/browser_wasi_shim": "^0.2.20",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.15.12",
@@ -19,6 +20,7 @@
     "@types/react-dom": "^18.2.21",
     "commonjs": "^0.0.1",
     "konva": "^9.3.6",
+    "node-fetch": "^3.3.2",
     "paper": "^0.12.17",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

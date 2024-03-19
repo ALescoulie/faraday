@@ -20,7 +20,7 @@
             pkgs.cabal-install
           ];
         } ''
-          cabal build --project-file=cabal-wasm.project mentat-wasm
+          cabal --config-file=conf/cabal/config build --project-file=cabal-wasm.project mentat-wasm
           '';
 
         build-mentat-wasm = pkgs.runCommand "make-wasm-interface" {
@@ -29,10 +29,21 @@
             build-mentat-wasm-haskell
           ];
         } ''
-          wizer --allow-wasi --wasm-bulk-memory true "$(cabal --project-file=cabal-wasm.project list-bin -v0 mentat-wasm)" -o mentat-interop.wasmist-bin -v0 mentat-wasm)" -o src/frontend/wasm/mentat-interop.wasm
+          wizer --allow-wasi --wasm-bulk-memory true "$(cabal --config-file=conf/cabal/config --project-file=cabal-wasm.project list-bin -v0 mentat-wasm)" -o mentat-interop.wasmist-bin -v0 mentat-wasm)" -o src/frontend/wasm/mentat-interop.wasm
           '';
-            
-                      
+
+        build-faraday = pkgs.runCommand "make-faraday" {
+          buildInputs = [
+            pkgs.nodejs
+            pkgs.nodePackages.pnpm
+            pkgs.nodePackages.typescript
+            build-mentat-wasm
+          ];
+
+        } ''
+          mkdir -p build
+          npm run build
+          '';
 
         # DON'T FORGET TO PUT YOUR PACKAGE NAME HERE, REMOVING `throw`
         packageName = "Faraday";
@@ -40,6 +51,7 @@
       in {
         packages.mentat-wasm-haskell = build-mentat-wasm-haskell;
         packages.mentat-wasm = build-mentat-wasm;
+        defaultPackage = build-faraday;
 
         devShells.default = pkgs.mkShell {
           buildInputs = [ 
