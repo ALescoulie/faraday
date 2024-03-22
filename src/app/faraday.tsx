@@ -25,7 +25,7 @@ import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import Stack from '@mui/material/Stack';
 import Paper from '@mui/material/Paper';
 
-import { MentatCompiler, initMentatCompiler } from './mentat.ts'
+import { FaradayCanvas } from './canvas.ts';
 
 interface InputLineProps {
     index: number;
@@ -151,15 +151,16 @@ function FaradayUI () {
 
     const [open, setOpen] = React.useState(false);
     const [mentatLines, setMentatLines] = React.useState(['']);
-    const [compiler, setCompilerInstanse] = React.useState<MentatCompiler | null>(null);
+    //const [compiler, setCompilerInstanse] = React.useState<MentatCompiler | null>(null);
+    const [stage, setStageInstance] = React.useState<FaradayCanvas | null>(null);
    
-    React.useEffect(() => {
-        initMentatCompiler("wasm/mentat-interop.wasm").then((compiler) => {
-            setCompilerInstanse(compiler);
-        }).catch((error) => {
-            console.error("Error: ", error );
-        });
-    }, []);
+   // React.useEffect(() => {
+   //     initMentatCompiler("wasm/mentat-interop.wasm").then((compiler) => {
+   //         setCompilerInstanse(compiler);
+   //     }).catch((error) => {
+   //         console.error("Error: ", error );
+   //     });
+   // }, []);
     
 
     const handleDrawerOpen = () => {
@@ -228,6 +229,14 @@ function FaradayUI () {
         }
     };
 
+    const canvasContainterID = "faradayCanvas";
+    setStageInstance(new FaradayCanvas(
+        canvasContainterID,
+        window.innerWidth,
+        window.innerHeight
+        )
+    );
+        
 
     return (
         <Box sx={{ display: 'flex', marginTop: `${tabsSize}px`}}>
@@ -249,15 +258,10 @@ function FaradayUI () {
             </Toolbar>
             </AppBar>
             {InputDrawer(open, handleDrawerClose, mentatLines, handleInputChange, handleInputDelete)}
-            <Main open={open}>
+            <Main open={open} >
                 <DrawerHeader />
-                <Typography paragraph>
-                    {compiler ? (
-                        compiler.compileMentatJson(mentatLines, ["x", "y"])
-                    ) : (
-                        "Loading ..."
-                    )}
-                </Typography>
+                <div id={canvasContainterID}>
+                </div>
             </Main>
         </Box>
     )

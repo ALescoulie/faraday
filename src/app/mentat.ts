@@ -1,71 +1,40 @@
-import { initMentatInterop, MentatInterop } from './mentat-interop'
+export namespace Mentat {
 
-interface MentatInput {
-    pgLines: string[];
-    domVars: string[];
-}
-
-const encoder = new TextEncoder();
-const decoder = new TextDecoder();
-
-export class MentatCompiler {
-    #mentat: MentatInterop
-
-    constructor(mentat: MentatInterop) {
-        this.#mentat = mentat;
+    export interface MentatInput {
+        pgLines: string[];
+        domVars: string[];
     }
 
-    compileMentatJson(mentatLines: string[], domainVars: string[]): String {
 
-        console.log("putting program onto the stack");
-        
-        const mentatIn: MentatInput = {
-            pgLines: mentatLines,
-            domVars: domainVars
-        };
-
-        const inputJson = JSON.stringify(mentatIn);
-        var output = this.#mentat.translateMentatProgram(inputJson);
-        
-        return output;
+    export enum CompOp {
+        Eql = "Eql",
+        Geq = "Geq",
+        Leq = "Leq",
+        G = "G",
+        L = "L"
     }
-}
+
+    export type Literal = number | boolean;
+
+    export type MentatVariables = Map<string, Literal>
+
+    export type MentatFunction = (vars: MentatVariables, funcs: Map<String, MentatFunction>, ...args: Literal[]) => Literal;
+
+    export type MentatFunctions = Map<string, MentatFunction>
 
 
-export async function initMentatCompiler(wasmBinaryPath: string): Promise<MentatCompiler> {
-    const  mentat = await initMentatInterop("wasm/mentat-interop.wasm");
-    return new MentatCompiler(mentat);
-}
+    export interface MentatConstraint {
+        left: (vars: MentatVariables, funcs: MentatFunctions, ...args: Number[]) => number
+        right: (vars: MentatVariables, funcs: MentatFunctions, ...args: Number[]) => number
+        comparison: CompOp
+    }
 
 
-enum CompOp {
-    Eql = "Eql",
-    Geq = "Geq",
-    Leq = "Leq",
-    G = "G",
-    L = "L"
-}
-
-type Literal = number | boolean;
-
-type MentatVariables = Map<string, Literal>
-
-type MentatFunction = (vars: MentatVariables, funcs: Map<String, MentatFunction>, ...args: Literal[]) => Literal;
-
-type MentatFunctions = Map<string, MentatFunction>
-
-
-interface MentatConstraint {
-    left: (vars: MentatVariables, funcs: MentatFunctions, ...args: Number[]) => number
-    right: (vars: MentatVariables, funcs: MentatFunctions, ...args: Number[]) => number
-    comparison: CompOp
-}
-
-
-interface MentatProgram {
-    vars: MentatVariables
-    funcs: MentatFunctions
-    expressions: Literal[]
-    constraints: MentatConstraint[]
+    export interface MentatProgram {
+        vars: MentatVariables
+        funcs: MentatFunctions
+        expressions: Literal[]
+        constraints: MentatConstraint[]
+    }
 }
 
