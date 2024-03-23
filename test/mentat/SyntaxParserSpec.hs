@@ -10,7 +10,7 @@ import Test.Hspec
 spec :: Spec
 spec = do
   describe "Testing whole program parsing" $ do
-    let pg1 = ["x := 1", "y := 2", "f(n) := 2 * n", "2 = x * y", "f(2x)"]
+    let pg1 = ["x := sin 1", "y := 2", "f(n) := 2 * n", "2 = x * y", "f(2x)"]
     let pg1Func = Function "f" ["n"] (BinOpE Mul (VarE "n") (LitE $ RL 2))
     let pg1Cstr =
           Constraint (BinOpE Mul (VarE "y") (VarE "x")) (LitE $ RL 2) Eql
@@ -31,5 +31,5 @@ spec = do
           case (HM.lookup "x" vars, HM.lookup "y" vars) of
             (Nothing, _) -> error "error: x not found in vars lookup"
             (_, Nothing) -> error "error: y not found in vars loopup"
-            (Just x, Just y) -> (x, y) `shouldBe` (LitE $ RL 1, LitE $ RL 2)
+            (Just x, Just y) -> (x, y) `shouldBe` (UniOpE Sin $ LitE $ RL 1, LitE $ RL 2)
         Left err -> error $ "Unexepected error " ++ show err
