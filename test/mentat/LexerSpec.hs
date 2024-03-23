@@ -37,6 +37,9 @@ spec = do
           , ("true", TTrue)
           , ("falseowo", TId "falseowo")
           , ("trueuwu", TId "trueuwu")
+          , ("sin", TUOp Sin)
+          , ("cos", TUOp Cos)
+          , ("not", TUOp Not)
           ]
     forM_ cases $ \(input, expected) ->
       it ("Parses " ++ show input) $ do lex input `shouldBe` [expected]
