@@ -32,6 +32,19 @@ shuntingYard (toT:restT) exprs ops =
      -> do
       argExprs <- mapM (\x -> shuntingYard x [] []) args
       shuntingYard restT (FxnE name argExprs : exprs) ops
+    TLeaf (TUOp uop) -> do
+      case restT of
+        (TLeaf (TNumber n): rs) -> do
+          let innerExpr = LitE (RL n)
+          shuntingYard rs (UniOpE uop innerExpr : exprs) ops
+        (TLeaf (TId id) : rs) -> shuntingYard rs (UniOpE uop (VarE id) : exprs) ops
+        (TFxn name args : rs) -> do
+          argExprs <- mapM (\x -> shuntingYard x [] []) args
+          let fxnCall = FxnE name argExprs
+          shuntingYard rs (UniOpE uop fxnCall : exprs) ops
+        (TNode _ innerTok : rs) -> do
+          innerExpr <- shuntingYard innerTok [] []
+          shuntingYard rs (UniOpE uop innerExpr : exprs) ops
     _ -> Left EmptyExpr
 
 -- | Helper for shuntingYard

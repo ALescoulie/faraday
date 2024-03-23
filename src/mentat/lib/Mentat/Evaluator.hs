@@ -22,6 +22,17 @@ applyBinOp (Comp LEq) (RL x) (RL y) = Right (BoolL (x <= y))
 applyBinOp (Comp L) (RL x) (RL y) = Right (BoolL (x < y))
 applyBinOp op x y = Left $ LitBinOpError op x y
 
+applyUniOP :: UniOp -> Literal -> Either Error Literal
+applyUniOP Neg (RL n) = Right $ RL $ -n
+applyUniOP Not (BoolL b) = Right $ BoolL $ not b
+applyUniOP Abs (RL n) = Right $ RL $ abs n
+applyUniOP Sin (RL n) = Right $ RL $ sin n
+applyUniOP Cos (RL n) = Right $ RL $ cos n
+applyUniOP Tan (RL n) = Right $ RL $ tan n
+applyUniOP Sec (RL n) = Right $ RL $ 1 /  (cos n)
+applyUniOP Csc (RL n) = Right $ RL $ 1 / (sin n)
+applyUniOP Ctan (RL n) = Right $ RL $ 1 / (tan n)
+
 evalExpr ::
      Expr
   -> HM.Map String Expr
@@ -37,6 +48,10 @@ evalExpr (VarE i) vars fxns gas = do
     Just n -> do
       rest <- evalExpr n vars fxns $ gas - 1
       Right rest
+evalExpr (UniOpE op expr) vars fxns gas = do
+  l1 <- evalExpr expr vars fxns gas
+  result <- applyUniOP op l1
+  Right result
 evalExpr (BinOpE op e1 e2) vars fxns gas = do
   l1 <- evalExpr e1 vars fxns gas
   l2 <- evalExpr e2 vars fxns gas

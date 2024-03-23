@@ -130,6 +130,7 @@ data Token
   | TTrue
   | TId String
   | TAsgn
+  | TNeg
   deriving (Show, Eq)
 
 -- | Used as an intermediate step in the parsing process to validate parens and sort them into sub trees
@@ -150,6 +151,7 @@ data Expr
   = LitE Literal
   | VarE String
   | BinOpE BinOp Expr Expr
+  | UniOpE UniOp Expr
   | FxnE String [Expr]
   deriving (Show, Eq)
 
