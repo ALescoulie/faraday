@@ -57,9 +57,26 @@ data BinOp
   | Sub
   | Mul
   | Div
-  | Exp 
+  | Exp
+  | And
+  | Or
+  | Xor
   | Comp CompOp
   deriving (Show, Eq)
+
+
+data UniOp
+  = Neg
+  | Not
+  | Abs
+  | Sin
+  | Cos
+  | Tan
+  | Sec
+  | Csc
+  | Ctan
+  deriving (Show, Eq)
+
 
 data CompOp
   = Eql
@@ -105,6 +122,7 @@ popOp op1 op2
 data Token
   = TNumber Float
   | TOp BinOp
+  | TUOp UniOp
   | TOpen Bracket
   | TClose Bracket
   | TSep
