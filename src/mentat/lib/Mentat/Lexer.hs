@@ -10,7 +10,7 @@ lex :: String -> [Token]
 lex [] = []
 lex (' ':cs) = lex cs
 lex ('+':cs) = TOp Add : lex cs
-lex ('-':cs) = TOp Sub : lex cs
+lex ('-':cs) = TNeg : lex cs
 lex ('*':cs) = TOp Mul : lex cs
 lex ('/':cs) = TOp Div : lex cs
 lex ('^':cs) = TOp Exp : lex cs
@@ -157,7 +157,4 @@ lexMultiCharToken s = do
             Just (token, rest)
           else
             Nothing
-        
-          
-      
-      
+  

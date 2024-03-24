@@ -61,7 +61,7 @@ spec = do
           [ ("f()", [TFxn "f" [[]]])
           , ("f(1, 2)", [TFxn "f" [[TLeaf $ TNumber 1], [TLeaf $ TNumber 2]]])
           , ( "f(n - 1)"
-            , [TFxn "f" [[TLeaf $ TId "n", TLeaf $ TOp Sub, TLeaf $ TNumber 1]]])
+            , [TFxn "f" [[TLeaf $ TId "n", TLeaf $ TNeg, TLeaf $ TNumber 1]]])
           , ( "f(f(n + 1))"
             , [ TFxn
                   "f"
@@ -78,7 +78,7 @@ spec = do
                     , TLeaf $ TOp Mul
                     , TNode
                         Paren
-                        [TLeaf $ TId "n", TLeaf $ TOp Sub, TLeaf $ TNumber 1]
+                        [TLeaf $ TId "n", TLeaf $ TNeg, TLeaf $ TNumber 1]
                     ]
                   ]
               ])

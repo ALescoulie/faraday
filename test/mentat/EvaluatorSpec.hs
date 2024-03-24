@@ -47,8 +47,11 @@ spec = do
           , "f(h(a,2) + h(b,2))"
           , "f(g(b))"
           , "f(g(b) * f(a))"
+          , "1 - - 1"
+          , "2 - 1"
+          , "-5"
           ]
-    let pg2ExpectedResults = [RL 10, RL 26, RL 24, RL 144]
+    let pg2ExpectedResults = [RL 10, RL 26, RL 24, RL 144, RL 2, RL 1, RL (-5)]
     let pg2 = parseProgram pg2Input []
     case pg2 of
       Right pg -> do

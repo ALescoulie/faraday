@@ -31,7 +31,7 @@ spec = do
             [ (TransFunction
                  "f"
                  ["mentatVars", "mentatFuncs", "x"]
-                 "(((mentatVars.get(b))*(2.0))+((mentatVars.get(a))*(2.0)))**(x)")
+                 "(((2.0)*(mentatVars.get(a)))+((2.0)*(mentatVars.get(b))))**(x)")
             ]
         it "Parses constraints" $ do
           cstrs `shouldBe`
@@ -39,11 +39,11 @@ spec = do
                 (TransFunction
                    "MentatExprLeft"
                    ["mentatVars", "MentatFuncs", "x", "y"]
-                   "(x)*(2.0)")
+                   "y")
                 (TransFunction
                    "MentatExprLeft"
                    ["mentatVars", "MentatFuncs", "x", "y"]
-                   "y")
+                   "(2.0)*(x)") 
                 "Eql"
             ]
 --        it "Translates to JSON" $ do

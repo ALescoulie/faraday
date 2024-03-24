@@ -1,12 +1,103 @@
-module Mentat.ExpressionParser (parseExpr) where
+module Mentat.ExpressionParser (parseExpr, resolveNegs) where
+
+import Prelude hiding (lex)
+
+import Control.Monad ((>=>))
 
 import Mentat.ParseTypes
 import Mentat.Tokenizer
 
 
+
+data NegTree 
+  = Empty
+  | NegNode NegTree NegTree
+  | BinOpNode BinOp NegTree NegTree
+  | UniOpNode UniOp NegTree
+  | BracketNode Bracket NegTree
+  | Leaf TokTree
+  deriving (Show, Eq)
+
+-- buildNegTrees [TokTree] -> NegTree -> Either Error [NegTree]
+buildNegTree :: [TokTree] -> Either Error NegTree
+buildNegTree toks = buildNegTree' toks Empty
+
+
+buildNegTree' :: [TokTree] -> NegTree -> Either Error NegTree
+buildNegTree' [] prev = Right prev
+buildNegTree' (TLeaf (TId id): rs) Empty = buildNegTree' rs $ Leaf (TLeaf $ TId id)
+buildNegTree' (TLeaf (TNumber n): rs) Empty = buildNegTree' rs $ Leaf (TLeaf $ TNumber n)
+buildNegTree' (TFxn name expr: rs) Empty = buildNegTree' rs $ Leaf (TFxn name expr)
+buildNegTree' (TNode bracket innerTok: rs) Empty = do
+  innerTree <- buildNegTree' innerTok Empty
+  buildNegTree' rs $ BracketNode bracket innerTree
+buildNegTree' (TLeaf (TUOp op): next : rest) Empty = do
+  restT <- buildNegTree' [next] Empty
+  buildNegTree' rest $ UniOpNode op restT
+buildNegTree' (TLeaf (TOp op): rest) left = do
+  case left of
+    Empty -> Left UnfinishedTokenStream
+    tree -> do
+      right <- buildNegTree' rest Empty
+      Right $ BinOpNode op left right
+buildNegTree' (TLeaf TNeg: rest) left = do
+  right <- buildNegTree' rest Empty
+  Right $ NegNode left right
+  
+-- TODO add check for function call arguments
+parseNegs :: NegTree -> Either Error NegTree
+parseNegs (NegNode left right) = do
+  case (left, right) of
+    (Empty, Empty) -> Left UnfinishedTokenStream
+    (_, Empty) -> Left UnfinishedTokenStream
+    (Empty, Leaf token) -> Right $ UniOpNode Neg (Leaf token)
+    (_, _) -> do
+      l <- parseNegs left
+      r <- parseNegs right
+      Right $ BinOpNode Sub l r
+parseNegs (BinOpNode op left right) = do
+  l <- parseNegs left
+  r <- parseNegs right
+  Right $ BinOpNode op l r
+parseNegs (UniOpNode op tree) = do
+  child <- parseNegs tree
+  Right $ UniOpNode op child
+parseNegs (BracketNode bracket tree) = do
+  child <- parseNegs tree
+  Right $ BracketNode bracket child
+parseNegs tree = Right tree
+
+
+deconstructNegTree :: NegTree -> Either Error [TokTree]
+deconstructNegTree Empty = Right []
+deconstructNegTree (Leaf tokTree) = Right [tokTree]
+deconstructNegTree (BinOpNode op left right) = do
+  rightToks <- deconstructNegTree right
+  leftToks <- deconstructNegTree left
+  Right $ leftToks ++ [(TLeaf (TOp op))] ++ rightToks
+deconstructNegTree (NegNode left right) = Left UnfinishedTokenStream -- maybe should not have this
+deconstructNegTree (UniOpNode op tree) = do
+  child <- deconstructNegTree tree
+  Right $ [TLeaf (TUOp op)] ++ child
+deconstructNegTree (BracketNode bracket tree) = do
+  child <- deconstructNegTree tree
+  Right [TNode bracket child]
+
+
+resolveNegs :: [TokTree] -> Either Error [TokTree]
+resolveNegs [] = Right []
+resolveNegs tokens = (buildNegTree >=> parseNegs >=> deconstructNegTree) tokens
+
+
 -- | Parses TokTree list into expression
 parseExpr :: [TokTree] -> Either Error Expr
-parseExpr tokens = shuntingYard tokens [] []
+parseExpr tokens = do
+  case (TLeaf TNeg) `elem` tokens of
+    True -> do
+      negResolvedToks <- resolveNegs tokens
+      shuntingYard negResolvedToks [] []
+    False -> do
+      shuntingYard tokens [] []
 
 -- | helper for parseExpr
 shuntingYard :: [TokTree] -> [Expr] -> [BinOp] -> Either Error Expr
@@ -30,7 +121,7 @@ shuntingYard (toT:restT) exprs ops =
       shuntingYard restT (innerExpr : exprs) ops
     TFxn name args -- if you encounter a fxn
      -> do
-      argExprs <- mapM (\x -> shuntingYard x [] []) args
+      argExprs <- mapM parseExpr args
       shuntingYard restT (FxnE name argExprs : exprs) ops
     TLeaf (TUOp uop) -> do
       case restT of
@@ -49,10 +140,7 @@ shuntingYard (toT:restT) exprs ops =
 
 -- | Helper for shuntingYard
 buildOpExpr :: BinOp -> Expr -> Expr -> Expr
-buildOpExpr op e1 e2 =
-  if opLeftAssoc op
-    then BinOpE op e1 e2
-    else BinOpE op e2 e1
+buildOpExpr op e1 e2 = BinOpE op e1 e2
 
 -- | Helper for shuntingYard
 -- | Takes in an expresssion stack operator stack and a maybe BinOp of the last operator hit.
@@ -70,14 +158,14 @@ combineExprs exprs [] op =
         True -> Right (exprs, []) -- if tokens are constructed into a single tree return it
         False -> Left $ BadExpr $ exprs -- if not return error
     Just op -> Right (exprs, [op]) -- if op add to stack and return
-combineExprs (exprL:exprR:rest) (op2:rops) maybeOp =
+combineExprs (exprR:exprL:rest) (op2:rops) maybeOp =
   case maybeOp -- if there are enought expression on the stack
         of
     Just op1 ->
       case popOp op1 op2 of
         True ->
           combineExprs (buildOpExpr op2 exprL exprR : rest) (rops) $ Just op1 -- If op1 has presidence over op2 combine the two expressions and put the new expression on the stack
-        False -> Right ((exprL : exprR : rest), (op1 : op2 : rops))
+        False -> Right ((exprR : exprL : rest), (op1 : op2 : rops))
     Nothing -> do
       combineExprs (buildOpExpr op2 exprL exprR : rest) rops Nothing
 combineExprs _ _ _ = Left EmptyExpr
